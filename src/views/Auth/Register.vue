@@ -36,7 +36,13 @@
           <label for="confirmPassword" class="font-medium">Confirm Password</label>
           <small v-if="errors.confirmPassword" class="text-red-500 flex align-items-center">{{ errors.confirmPassword }}</small>
         </div>
-        <Password id="confirmPassword" v-model="confirmPassword" toggleMask class="w-full" />
+        <Password
+          id="confirmPassword"
+          v-model="confirmPassword"
+          :feedback="false"
+          toggleMask
+          class="w-full"
+        />
       </div>
 
       <!-- Submit -->
@@ -56,54 +62,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../../utils/firebase';
-import { useToast } from 'primevue/usetoast';
-import InputText from 'primevue/inputtext';
-import Password from 'primevue/password';
-import Button from 'primevue/button';
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "../../utils/firebase";
+import { useToast } from "primevue/usetoast";
+import { useAuthStore } from "../../store/auth";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
+import Button from "primevue/button";
 
 const router = useRouter();
 const toast = useToast();
+const authStore = useAuthStore();
 
-const name = ref('');
-const email = ref('');
-const password = ref('');
-const confirmPassword = ref('');
+const name = ref("");
+const email = ref("");
+const password = ref("");
+const confirmPassword = ref("");
 const loading = ref(false);
 
 const errors = reactive({
-  name: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
 });
 
 const validateForm = () => {
   let valid = true;
 
   // Reset errors
-  errors.name = errors.email = errors.password = errors.confirmPassword = '';
+  errors.name = errors.email = errors.password = errors.confirmPassword = "";
 
   if (!name.value) {
-    errors.name = 'Full name is required';
+    errors.name = "Full name is required";
     valid = false;
   }
 
-  if (!email.value || !email.value.includes('@')) {
-    errors.email = 'Valid email is required';
+  if (!email.value || !email.value.includes("@")) {
+    errors.email = "Valid email is required";
     valid = false;
   }
 
   if (password.value.length < 6) {
-    errors.password = 'Password must be at least 6 characters';
+    errors.password = "Password must be at least 6 characters";
     valid = false;
   }
 
   if (confirmPassword.value !== password.value) {
-    errors.confirmPassword = 'Passwords do not match';
+    errors.confirmPassword = "Passwords do not match";
     valid = false;
   }
 
@@ -115,7 +123,11 @@ const onSubmit = async () => {
 
   try {
     loading.value = true;
-    const userCred = await createUserWithEmailAndPassword(auth, email.value, password.value);
+    const userCred = await createUserWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
 
     // Update display name
     if (userCred.user) {
@@ -125,29 +137,29 @@ const onSubmit = async () => {
     }
 
     toast.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Registration successful!',
-      life: 3000
+      severity: "success",
+      summary: "Success",
+      detail: "Registration successful!",
+      life: 3000,
     });
 
-    router.push('/dashboard');
+    router.push("/dashboard");
   } catch (err: any) {
-    let errorMessage = 'Registration failed';
+    let errorMessage = "Registration failed";
 
     const code = err?.code;
 
-    if (code === 'auth/email-already-in-use') {
-      errorMessage = 'Email is already in use';
-    } else if (code === 'auth/invalid-email') {
-      errorMessage = 'Invalid email address';
-    } else if (code === 'auth/weak-password') {
-      errorMessage = 'Password is too weak';
+    if (code === "auth/email-already-in-use") {
+      errorMessage = "Email is already in use";
+    } else if (code === "auth/invalid-email") {
+      errorMessage = "Invalid email address";
+    } else if (code === "auth/weak-password") {
+      errorMessage = "Password is too weak";
     }
 
     toast.add({
-      severity: 'error',
-      summary: 'Error',
+      severity: "error",
+      summary: "Error",
       detail: errorMessage,
       life: 4000,
     });

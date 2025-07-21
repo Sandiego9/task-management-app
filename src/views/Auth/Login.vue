@@ -18,7 +18,13 @@
           <label for="password" class="font-medium text-left">Password</label>
           <small v-if="errors.password" class="text-red-500 flex align-items-center">{{ errors.password }}</small>
         </div>
-        <Password id="password" v-model="password" toggleMask class="w-full" />
+        <Password
+          id="password"
+          v-model="password"
+          :feedback="false"
+          toggleMask
+          class="w-full"
+        />
       </div>
 
       <div class="mt-3 text-right">
@@ -42,39 +48,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../utils/firebase';
-import { useToast } from 'primevue/usetoast';
-import InputText from 'primevue/inputtext';
-import Password from 'primevue/password';
-import Button from 'primevue/button';
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../utils/firebase";
+import { useToast } from "primevue/usetoast";
+import { useAuthStore } from "../../store/auth";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
+import Button from "primevue/button";
 
 const router = useRouter();
 const toast = useToast();
+const authStore = useAuthStore();
 
-const email = ref('');
-const password = ref('');
+const email = ref("");
+const password = ref("");
 const loading = ref(false);
 
 const errors = reactive({
-  email: '',
-  password: '',
+  email: "",
+  password: "",
 });
 
 const validateForm = () => {
   let valid = true;
 
-  errors.email = errors.password = '';
+  errors.email = errors.password = "";
 
-  if (!email.value || !email.value.includes('@')) {
-    errors.email = 'Valid email is required';
+  if (!email.value || !email.value.includes("@")) {
+    errors.email = "Valid email is required";
     valid = false;
   }
 
   if (!password.value) {
-    errors.password = 'Password is required';
+    errors.password = "Password is required";
     valid = false;
   }
 
@@ -86,32 +94,33 @@ const onLogin = async () => {
 
   try {
     loading.value = true;
+    const auth = getAuth();
     await signInWithEmailAndPassword(auth, email.value, password.value);
 
     toast.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Login successful!',
-      life: 3000
+      severity: "success",
+      summary: "Success",
+      detail: "Login successful!",
+      life: 3000,
     });
 
-    router.push('/dashboard');
+    router.push("/dashboard");
   } catch (err: any) {
-    let errorMessage = 'Login failed';
-    
+    let errorMessage = "Login failed";
+
     const code = err?.code;
 
-    if (code === 'auth/user-not-found') {
-      errorMessage = 'No user found with this email';
-    } else if (code === 'auth/wrong-password') {
-      errorMessage = 'Incorrect password';
-    } else if (code === 'auth/invalid-credential') {
-      errorMessage = 'Invalid email address or password';
+    if (code === "auth/user-not-found") {
+      errorMessage = "No user found with this email";
+    } else if (code === "auth/wrong-password") {
+      errorMessage = "Incorrect password";
+    } else if (code === "auth/invalid-credential") {
+      errorMessage = "Invalid email address or password";
     }
 
     toast.add({
-      severity: 'error',
-      summary: 'Error',
+      severity: "error",
+      summary: "Error",
       detail: errorMessage,
       life: 4000,
     });
