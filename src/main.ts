@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./store/auth";
 import App from "./App.vue";
@@ -9,6 +9,7 @@ import Toast from "primevue/toast";
 import ToastService from "primevue/toastservice";
 import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
+import "./utils/firebase";
 import "./style.css";
 
 const app = createApp(App);
@@ -28,4 +29,12 @@ app.use(PrimeVue, {
 const authStore = useAuthStore();
 
 authStore.init();
-app.mount("#app");
+
+watch(
+  () => authStore.isLoading,
+  (loading) => {
+    if (!loading) {
+      app.mount("#app");
+    }
+  }
+);
