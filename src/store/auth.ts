@@ -1,11 +1,6 @@
 import { defineStore } from "pinia";
 import { getAuth, onAuthStateChanged, type User } from "firebase/auth";
-
-interface AuthenticatedUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-}
+import type { AuthenticatedUser } from "../types/user";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({

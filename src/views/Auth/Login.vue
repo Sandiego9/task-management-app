@@ -95,13 +95,15 @@ const onLogin = async () => {
   try {
     loading.value = true;
     const auth = getAuth();
-    await signInWithEmailAndPassword(auth, email.value, password.value);
+    const userCred = await signInWithEmailAndPassword(auth, email.value, password.value);
+
+    authStore.setUser(userCred.user);
 
     toast.add({
       severity: "success",
       summary: "Success",
       detail: "Login successful!",
-      life: 3000,
+      life: 3000
     });
 
     router.push("/dashboard");
@@ -122,7 +124,7 @@ const onLogin = async () => {
       severity: "error",
       summary: "Error",
       detail: errorMessage,
-      life: 4000,
+      life: 3000
     });
   } finally {
     loading.value = false;

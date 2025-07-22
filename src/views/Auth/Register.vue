@@ -136,11 +136,13 @@ const onSubmit = async () => {
       });
     }
 
+    authStore.setUser(userCred.user);
+
     toast.add({
       severity: "success",
       summary: "Success",
       detail: "Registration successful!",
-      life: 3000,
+      life: 3000
     });
 
     router.push("/dashboard");
@@ -161,7 +163,7 @@ const onSubmit = async () => {
       severity: "error",
       summary: "Error",
       detail: errorMessage,
-      life: 4000,
+      life: 3000
     });
   } finally {
     loading.value = false;
