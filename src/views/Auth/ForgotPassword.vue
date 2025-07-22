@@ -56,7 +56,7 @@ const onResetPassword = async () => {
       severity: 'success',
       summary: 'Email Sent',
       detail: 'Password reset link has been sent!',
-      life: 3000,
+      life: 3000
     });
 
     router.push('/login');
@@ -74,7 +74,7 @@ const onResetPassword = async () => {
       severity: 'error',
       summary: 'Error',
       detail: message,
-      life: 4000,
+      life: 3000
     });
   } finally {
     loading.value = false;

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { auth } from "../utils/firebase";
+import { useAuthStore } from "../store/auth";
 
 const routes = [
   {
@@ -35,16 +35,30 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const currentUser = auth.currentUser;
-  const requiresAuth = to.meta.requiresAuth;
+router.beforeEach((to, _from, next) => {
+  const authStore = useAuthStore();
 
-  if (requiresAuth && !currentUser) {
-    next("/login");
-  } else if (to.path === "/login" && currentUser) {
-    next("/dashboard");
+  if (authStore.isLoading) {
+    const unwatch = authStore.$subscribe((_mutation, state) => {
+      if (!state.isLoading) {
+        unwatch(); // stop watching
+        proceed();
+      }
+    });
   } else {
-    next();
+    proceed();
+  }
+
+  function proceed() {
+    const requiresAuth = to.meta.requiresAuth;
+    const isAuth = authStore.isAuthenticated;
+
+    if (requiresAuth && !isAuth) {
+      console.log(to.fullPath, isAuth)
+      next("/login");
+    } else {
+      next();
+    }
   }
 });
 
