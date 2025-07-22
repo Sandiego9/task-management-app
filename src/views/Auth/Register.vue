@@ -1,9 +1,9 @@
 <template>
-  <div class="surface-200 text-gray-900 p-4 w-22rem border-round-2xl">
-    <h2 class="text-2xl font-bold mt-0 mb-4 text-center">Create an Account</h2>
-
+  <AuthLayout
+    cardTitle="Create an Account"
+  >
     <form @submit.prevent="onSubmit" class="flex flex-column">
-      <!-- Full Name -->
+    <!-- Full Name -->
       <div>
         <div class="flex justify-content-between">
           <label for="name" class="font-medium text-left">Full Name</label>
@@ -58,7 +58,7 @@
       Already have an account?
       <router-link to="/login" class="text-blue-500">Login</router-link>
     </p>
-  </div>
+  </AuthLayout>
 </template>
 
 <script setup lang="ts">
@@ -68,6 +68,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
+import AuthLayout from "./layouts/AuthLayout.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";

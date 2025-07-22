@@ -1,9 +1,8 @@
 <template>
-  <div class="surface-200 text-gray-900 p-4 w-22rem border-round-2xl">
-    <h2 class="text-2xl font-bold mt-0 mb-4 text-center">Welcome Back</h2>
-
+  <AuthLayout
+    cardTitle="Welcome Back"
+  >
     <form @submit.prevent="onLogin" class="flex flex-column">
-      <!-- Email -->
       <div>
         <div class="flex justify-content-between">
           <label for="email" class="font-medium text-left">Email</label>
@@ -12,7 +11,6 @@
         <InputText id="email" v-model="email" class="w-full" />
       </div>
 
-      <!-- Password -->
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="password" class="font-medium text-left">Password</label>
@@ -31,7 +29,6 @@
         <router-link to="/forgot-password" class="text-sm text-blue-500">Forgot Password?</router-link>
       </div>
 
-      <!-- Submit -->
       <Button
         type="submit"
         class="w-full mt-1"
@@ -44,7 +41,7 @@
       Don’t have an account?
       <router-link to="/register" class="text-blue-500">Register</router-link>
     </p>
-  </div>
+  </AuthLayout>
 </template>
 
 <script setup lang="ts">
@@ -54,6 +51,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
+import AuthLayout from "./layouts/AuthLayout.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";

@@ -1,7 +1,7 @@
 <template>
-  <div class="surface-200 text-gray-900 p-4 w-22rem border-round-2xl">
-    <h2 class="text-2xl font-bold mb-4 text-center">Reset Password</h2>
-
+  <AuthLayout
+    cardTitle="Reset Password"
+  >
     <form @submit.prevent="onResetPassword" class="flex flex-column">
       <div>
         <div class="flex justify-content-between">
@@ -22,7 +22,7 @@
     <p class="mt-3 mb-0 text-center">
       <router-link to="/login" class="text-blue-500">Back to Login</router-link>
     </p>
-  </div>
+  </AuthLayout>
 </template>
 
 <script setup lang="ts">
@@ -31,6 +31,7 @@ import { useRouter } from 'vue-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../utils/firebase';
 import { useToast } from 'primevue/usetoast';
+import AuthLayout from "./layouts/AuthLayout.vue";
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 
