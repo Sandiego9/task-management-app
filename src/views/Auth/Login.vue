@@ -51,7 +51,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
-import AuthLayout from "./layouts/AuthLayout.vue";
+import AuthLayout from "./layout/AuthLayout.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";

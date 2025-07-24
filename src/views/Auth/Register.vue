@@ -3,7 +3,6 @@
     cardTitle="Create an Account"
   >
     <form @submit.prevent="onSubmit" class="flex flex-column">
-    <!-- Full Name -->
       <div>
         <div class="flex justify-content-between">
           <label for="name" class="font-medium text-left">Full Name</label>
@@ -12,7 +11,6 @@
         <InputText id="name" v-model="name" class="w-full" />
       </div>
 
-      <!-- Email -->
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="email" class="mb-1 font-medium">Email</label>
@@ -21,7 +19,6 @@
         <InputText id="email" v-model="email" class="w-full" />
       </div>
 
-      <!-- Password -->
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="password" class="font-medium text-left">Password</label>
@@ -30,7 +27,6 @@
         <Password id="password" v-model="password" toggleMask class="w-full" />
       </div>
 
-      <!-- Confirm Password -->
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="confirmPassword" class="font-medium">Confirm Password</label>
@@ -45,7 +41,6 @@
         />
       </div>
 
-      <!-- Submit -->
       <Button
         type="submit"
         class="w-full mt-4"
@@ -68,7 +63,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
-import AuthLayout from "./layouts/AuthLayout.vue";
+import AuthLayout from "./layout/AuthLayout.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";

@@ -10,9 +10,13 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   cardTitle: string
 }>();
+</script>
+
+<script lang="ts">
+export default {};
 </script>
 
 <style scoped>

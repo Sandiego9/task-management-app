@@ -9,7 +9,7 @@
   <template v-else>
     <div
       v-if="isLoggedIn"
-      class="surface-900 text-gray-100 p-6 border-round-xl text-center"
+      class="surface-900 text-gray-100 p-6 border-round-xl text-center w-screen h-screen"
     >
       <h2 class="text-2xl font-bold mb-2">Welcome, {{ displayName }}!</h2>
       <p class="text-md mb-4">Your email address is: {{ email }}</p>
@@ -44,8 +44,6 @@ const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
 
-// const displayName = ref("");
-// const email = ref("");
 const displayName = computed(() => authStore.user?.displayName || "User");
 const email = computed(() => authStore.user?.email || "user@gmail.com");
 const isLoggedIn = computed(() => authStore.isAuthenticated);
@@ -55,14 +53,6 @@ watch(() => authStore.isAuthenticated, (authenticated) => {
     router.push("/login")
   }
 });
-
-// onMounted(() => {
-//   const user = authStore.user;
-//   if (user) {
-//     displayName.value = user.displayName || "User";
-//     email.value = user.email || "user@gmail.com";
-//   }
-// });
 
 const onLogout = async () => {
   try {

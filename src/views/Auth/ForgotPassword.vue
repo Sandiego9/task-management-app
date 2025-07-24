@@ -31,7 +31,7 @@ import { useRouter } from 'vue-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../utils/firebase';
 import { useToast } from 'primevue/usetoast';
-import AuthLayout from "./layouts/AuthLayout.vue";
+import AuthLayout from "./layout/AuthLayout.vue";
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 
