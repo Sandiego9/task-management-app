@@ -22,10 +22,14 @@ export const useAuthStore = defineStore("auth", {
       };
 
       // Get the token
-      firebaseUser.getIdToken().then((token: string) => {
-        this.token = token;
+      try {
+        this.token = await firebaseUser.getIdToken();
+      } catch (error) {
+        console.error("Token fetch failed:", error);
+        this.token = null;
+      } finally {
         this.isLoading = false;
-      });
+      }
     },
     clearUser() {
       this.user = null;
