@@ -1,4 +1,4 @@
-import { createApp, watch } from "vue";
+import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./store/auth";
 import App from "./App.vue";
@@ -9,32 +9,23 @@ import Toast from "primevue/toast";
 import ToastService from "primevue/toastservice";
 import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
-import "./utils/firebase";
 import "./style.css";
 
 const app = createApp(App);
 const pinia = createPinia();
 
-app.component("Toast", Toast);
-
-app.use(router);
 app.use(pinia);
-app.use(ToastService);
-app.use(PrimeVue, {
-  theme: {
-    preset: Aura
-  }
-});
-
 const authStore = useAuthStore();
 
 authStore.init();
 
-watch(
-  () => authStore.isLoading,
-  (loading) => {
-    if (!loading) {
-      app.mount("#app");
-    }
-  }
-);
+app.use(router);
+app.use(ToastService);
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+  },
+});
+app.component("Toast", Toast);
+
+app.mount("#app");
