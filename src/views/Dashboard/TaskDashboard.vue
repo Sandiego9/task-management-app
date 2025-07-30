@@ -33,8 +33,6 @@
 <script setup lang="ts">
 import { computed, onMounted, watch, ref } from "vue";
 import { useRouter } from "vue-router";
-import { auth } from "../../utils/firebase";
-import { signOut } from "firebase/auth";
 import { useAuthStore } from "../../store/auth";
 import { useToast } from "primevue";
 import ProgressSpinner from "primevue/progressspinner";
@@ -54,25 +52,15 @@ watch(() => authStore.isAuthenticated, (authenticated) => {
   }
 });
 
-const onLogout = async () => {
-  try {
-    await signOut(auth);
-    toast.add({
-      severity: "success",
-      summary: "Logout Successful",
-      detail: "You have been logged out successfully.",
-      life: 3000
-    });
-    router.push("/login");
-  } catch (error) {
-    toast.add({
-      severity: "error",
-      summary: "Logout Failed",
-      detail: "There was an error logging out.",
-      life: 3000
-    });
-  }
-  authStore.clearUser();
+const onLogout = () => {
+  authStore.logout();
+  toast.add({
+    severity: "success",
+    summary: "Logout Successful",
+    detail: "You have been logged out successfully.",
+    life: 3000
+  });
+  router.push("/login");
 };
 </script>
 

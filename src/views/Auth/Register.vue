@@ -1,28 +1,45 @@
 <template>
-  <AuthLayout
-    cardTitle="Create an Account"
-  >
+  <AuthLayout cardTitle="Create an Account">
     <form @submit.prevent="onSubmit" class="flex flex-column">
-      <div>
-        <div class="flex justify-content-between">
-          <label for="name" class="font-medium text-left">Full Name</label>
-          <small v-if="errors.email" class="text-red-500 flex align-items-center">{{ errors.email }}</small>
+      <div class="flex gap-2">
+        <div>
+          <div class="flex justify-content-between">
+            <label for="firstName" class="font-medium text-left">First Name</label>
+            <small v-if="errors.firstName" class="text-red-500 flex align-items-center text-xs">{{ errors.firstName }}</small>
+          </div>
+          <InputText id="firstName" v-model="firstName" class="w-full" />
         </div>
-        <InputText id="name" v-model="name" class="w-full" />
+
+        <div class="2xl:mt-3">
+          <div class="flex justify-content-between">
+            <label for="lastName" class="font-medium text-left">Last Name</label>
+            <small v-if="errors.lastName" class="text-red-500 flex align-items-center text-xs">{{ errors.lastName }}</small>
+          </div>
+          <InputText id="lastName" v-model="lastName" class="w-full" />
+        </div>
       </div>
 
-      <div class="mt-3">
-        <div class="flex justify-content-between">
-          <label for="email" class="mb-1 font-medium">Email</label>
-          <small v-if="errors.email" class="text-red-500 flex align-items-center">{{ errors.email }}</small>
+      <div class="flex gap-2 flex-direction-column">
+        <div class="mt-3">
+          <div class="flex justify-content-between">
+            <label for="email" class="mb-1 font-medium">Email</label>
+            <small v-if="errors.email" class="text-red-500 flex align-items-center text-xs">{{ errors.email }}</small>
+          </div>
+          <InputText id="email" v-model="email" class="w-full" />
         </div>
-        <InputText id="email" v-model="email" class="w-full" />
+
+        <div class="mt-3">
+          <div class="flex justify-content-between">
+            <label for="phoneNumber" class="mb-1 font-medium">Phone Number</label>
+          </div>
+          <InputText id="phoneNumber" v-model="phoneNumber" class="w-full" />
+        </div>
       </div>
 
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="password" class="font-medium text-left">Password</label>
-          <small v-if="errors.password" class="text-red-500 flex align-items-center">{{ errors.password }}</small>
+          <small v-if="errors.password" class="text-red-500 flex align-items-center text-xs">{{ errors.password }}</small>
         </div>
         <Password id="password" v-model="password" toggleMask class="w-full" />
       </div>
@@ -30,22 +47,16 @@
       <div class="mt-3">
         <div class="flex justify-content-between">
           <label for="confirmPassword" class="font-medium">Confirm Password</label>
-          <small v-if="errors.confirmPassword" class="text-red-500 flex align-items-center">{{ errors.confirmPassword }}</small>
+          <small v-if="errors.confirmPassword" class="text-red-500 flex align-items-center text-xs">{{ errors.confirmPassword }}</small>
         </div>
-        <Password
-          id="confirmPassword"
-          v-model="confirmPassword"
-          :feedback="false"
-          toggleMask
-          class="w-full"
-        />
+        <Password id="confirmPassword" v-model="confirmPassword" :feedback="false" toggleMask class="w-full" />
       </div>
 
       <Button
         type="submit"
         class="w-full mt-4"
-        :label="loading ? 'Creating account...' : 'Register'"
-        :loading="loading"
+        :label="authStore.isLoading ? 'Creating account...' : 'Register'"
+        :loading="authStore.isLoading"
       />
     </form>
 
@@ -59,8 +70,6 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
 import AuthLayout from "./layout/AuthLayout.vue";
@@ -72,14 +81,16 @@ const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
 
-const name = ref("");
+const firstName = ref("");
+const lastName = ref("");
 const email = ref("");
+const phoneNumber = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const loading = ref(false);
 
 const errors = reactive({
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -89,10 +100,15 @@ const validateForm = () => {
   let valid = true;
 
   // Reset errors
-  errors.name = errors.email = errors.password = errors.confirmPassword = "";
+  errors.firstName = errors.lastName = errors.email = errors.password = errors.confirmPassword = "";
 
-  if (!name.value) {
-    errors.name = "Full name is required";
+  if (!firstName.value) {
+    errors.firstName = "First name is required";
+    valid = false;
+  }
+
+    if (!lastName.value) {
+    errors.lastName = "Last name is required";
     valid = false;
   }
 
@@ -117,52 +133,32 @@ const validateForm = () => {
 const onSubmit = async () => {
   if (!validateForm()) return;
 
-  try {
-    loading.value = true;
-    const userCred = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+  const payload = {
+    firstName: firstName.value,
+    lastName: lastName.value,
+    email: email.value,
+    phoneNumber: phoneNumber.value || "",
+    password: password.value,
+    isAdmin: true
+  };
 
-    // Update display name
-    if (userCred.user) {
-      await updateProfile(userCred.user, {
-        displayName: name.value,
-      });
-    }
+  const { success, errorMessage } = await authStore.register(payload);
 
-    authStore.setUser(userCred.user);
-
+  if (success) {
     toast.add({
       severity: "success",
-      summary: "Success",
-      detail: "Registration successful!",
+      summary: "Registration Successful",
+      detail: "Welcome! Your account has been created.",
       life: 3000
     });
-
     router.push("/dashboard");
-  } catch (err: any) {
-    let errorMessage = "Registration failed";
-
-    const code = err?.code;
-
-    if (code === "auth/email-already-in-use") {
-      errorMessage = "Email is already in use";
-    } else if (code === "auth/invalid-email") {
-      errorMessage = "Invalid email address";
-    } else if (code === "auth/weak-password") {
-      errorMessage = "Password is too weak";
-    }
-
+  } else {
     toast.add({
       severity: "error",
-      summary: "Error",
-      detail: errorMessage,
+      summary: "Registration Failed",
+      detail: errorMessage || "An error occured during registration.",
       life: 3000
     });
-  } finally {
-    loading.value = false;
   }
 };
 </script>
@@ -170,5 +166,11 @@ const onSubmit = async () => {
 <style scoped>
 :deep(.p-password-input) {
   width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .flex-direction-column {
+    flex-direction: column;
+  }
 }
 </style>
