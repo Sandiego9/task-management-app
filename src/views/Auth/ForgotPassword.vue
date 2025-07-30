@@ -29,7 +29,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../../utils/firebase';
+// import { auth } from '../../utils/firebase';
 import { useToast } from 'primevue/usetoast';
 import AuthLayout from "./layout/AuthLayout.vue";
 import InputText from 'primevue/inputtext';
@@ -42,45 +42,45 @@ const email = ref('');
 const error = ref('');
 const loading = ref(false);
 
-const onResetPassword = async () => {
-  error.value = '';
+// const onResetPassword = async () => {
+//   error.value = '';
 
-  if (!email.value || !email.value.includes('@')) {
-    error.value = 'Please enter a valid email';
-    return;
-  }
+//   if (!email.value || !email.value.includes('@')) {
+//     error.value = 'Please enter a valid email';
+//     return;
+//   }
 
-  try {
-    loading.value = true;
-    await sendPasswordResetEmail(auth, email.value);
-    toast.add({
-      severity: 'success',
-      summary: 'Email Sent',
-      detail: 'Password reset link has been sent!',
-      life: 3000
-    });
+//   try {
+//     loading.value = true;
+//     await sendPasswordResetEmail(auth, email.value);
+//     toast.add({
+//       severity: 'success',
+//       summary: 'Email Sent',
+//       detail: 'Password reset link has been sent!',
+//       life: 3000
+//     });
 
-    router.push('/login');
-  } catch (err: any) {
-    const code = err?.code;
-    let message = 'Password reset failed';
+//     router.push('/login');
+//   } catch (err: any) {
+//     const code = err?.code;
+//     let message = 'Password reset failed';
 
-    if (code === 'auth/user-not-found') {
-      message = 'No account found with this email';
-    } else if (code === 'auth/invalid-email') {
-      message = 'Invalid email address';
-    }
+//     if (code === 'auth/user-not-found') {
+//       message = 'No account found with this email';
+//     } else if (code === 'auth/invalid-email') {
+//       message = 'Invalid email address';
+//     }
 
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message,
-      life: 3000
-    });
-  } finally {
-    loading.value = false;
-  }
-};
+//     toast.add({
+//       severity: 'error',
+//       summary: 'Error',
+//       detail: message,
+//       life: 3000
+//     });
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 </script>
 
 <style scoped>

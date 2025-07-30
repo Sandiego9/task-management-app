@@ -1,7 +1,5 @@
 <template>
-  <AuthLayout
-    cardTitle="Welcome Back"
-  >
+  <AuthLayout cardTitle="Welcome Back">
     <form @submit.prevent="onLogin" class="flex flex-column">
       <div>
         <div class="flex justify-content-between">
@@ -32,8 +30,8 @@
       <Button
         type="submit"
         class="w-full mt-1"
-        :label="loading ? 'Signing in...' : 'Login'"
-        :loading="loading"
+        :label="authStore.isLoading ? 'Signing in...' : 'Login'"
+        :loading="authStore.isLoading"
       />
     </form>
 
@@ -47,8 +45,6 @@
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../utils/firebase";
 import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "../../store/auth";
 import AuthLayout from "./layout/AuthLayout.vue";
@@ -62,7 +58,6 @@ const authStore = useAuthStore();
 
 const email = ref("");
 const password = ref("");
-const loading = ref(false);
 
 const errors = reactive({
   email: "",
@@ -71,7 +66,6 @@ const errors = reactive({
 
 const validateForm = () => {
   let valid = true;
-
   errors.email = errors.password = "";
 
   if (!email.value || !email.value.includes("@")) {
@@ -90,42 +84,26 @@ const validateForm = () => {
 const onLogin = async () => {
   if (!validateForm()) return;
 
-  try {
-    loading.value = true;
-    const auth = getAuth();
-    const userCred = await signInWithEmailAndPassword(auth, email.value, password.value);
+  const { success, errorMessage } = await authStore.login(
+    email.value,
+    password.value
+  );
 
-    authStore.setUser(userCred.user);
-
+  if (success) {
     toast.add({
       severity: "success",
-      summary: "Success",
-      detail: "Login successful!",
+      summary: "Login Successful",
+      detail: "Welcome back!",
       life: 3000
     });
-
     router.push("/dashboard");
-  } catch (err: any) {
-    let errorMessage = "Login failed";
-
-    const code = err?.code;
-
-    if (code === "auth/user-not-found") {
-      errorMessage = "No user found with this email";
-    } else if (code === "auth/wrong-password") {
-      errorMessage = "Incorrect password";
-    } else if (code === "auth/invalid-credential") {
-      errorMessage = "Invalid email address or password";
-    }
-
+  } else {
     toast.add({
       severity: "error",
-      summary: "Error",
-      detail: errorMessage,
+      summary: "Login failed",
+      detail: errorMessage || "An error occured during login.",
       life: 3000
     });
-  } finally {
-    loading.value = false;
   }
 };
 </script>
