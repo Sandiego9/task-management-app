@@ -20,13 +20,18 @@ const routes = [
   },
   {
     path: "/dashboard",
-    component: () => import("@/views/Dashboard/TaskDashboard.vue"),
+    component: () => import("@/layouts/DashboardLayout.vue"),
     meta: { requiresAuth: true },
-  },
-  {
-    path: "/profile",
-    component: () => import("@/views/Profile/ProfileView.vue"),
-    meta: { requiresAuth: true },
+    children: [
+      {
+        path: "",
+        component: () => import("@/views/Dashboard/TaskDashboard.vue"),
+      },
+      {
+        path: "profile",
+        component: () => import("@/views/Profile/ProfileView.vue"),
+      },
+    ],
   },
 ];
 
@@ -54,7 +59,7 @@ router.beforeEach((to, _from, next) => {
     const isAuth = authStore.isAuthenticated;
 
     if (requiresAuth && !isAuth) {
-      console.log(to.fullPath, isAuth)
+      console.log(to.fullPath, isAuth);
       next("/login");
     } else {
       next();
