@@ -64,8 +64,8 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import type { Task, TaskStatus } from "@/types/task";
 import { useToast } from "primevue/usetoast";
-import type { Task, TaskStatus } from "../../../types/task";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";

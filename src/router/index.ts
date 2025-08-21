@@ -25,11 +25,11 @@ const routes = [
     children: [
       {
         path: "",
-        component: () => import("@/views/Dashboard/TaskDashboard.vue"),
+        component: () => import("@/views/Dashboard/Tasks/TaskDashboard.vue"),
       },
       {
         path: "profile",
-        component: () => import("@/views/Profile/ProfileView.vue"),
+        component: () => import("@/views/Dashboard/Profile/ProfileView.vue"),
       },
     ],
   },

@@ -146,32 +146,28 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-// import { useAuthStore } from "@/store/auth";
-import { useAuthStore } from "../../store/auth";
+import { useAuthStore } from "@/store/auth";
 import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
+import { InputText } from "primevue";
+import type { Task } from "@/types/task";
+import taskServices from "@/services/taskService";
 import ProgressSpinner from "primevue/progressspinner";
+import ConfirmDialog from "primevue/confirmdialog";
 import Button from "primevue/button";
 import Avatar from "primevue/avatar";
 import Menu from "primevue/menu";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-// import TaskModal from "@/components/TaskModal.vue";
-// import { Task } from "@/types/task";
-import TaskModal from "./components/TaskModal.vue";
-import type { Task } from "../../types/task";
-// import * as taskService from "@/services/taskService";
-import taskServices from "../../services/taskService";
-import { InputText } from "primevue";
-import ConfirmDialog from "primevue/confirmdialog";
 import Tag from "primevue/tag";
-import { useConfirm } from "primevue/useconfirm";
+import TaskModal from "./components/TaskModal.vue";
 
 const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
 const confirm = useConfirm();
 
-const displayName = computed(() => authStore.user?.displayName || "User");
+const displayName = computed(() => authStore.user?.fullName || "User");
 const email = computed(() => authStore.user?.email || "user@gmail.com");
 const isLoggedIn = computed(() => authStore.isAuthenticated);
 
@@ -342,7 +338,7 @@ const getRowActions = (task: Task) => [
   },
 ];
 
-const rowMenus = {};
+// const rowMenus = {};
 
 watch(
   () => authStore.isAuthenticated,

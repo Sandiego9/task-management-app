@@ -28,7 +28,7 @@ export const useAuthStore = defineStore("auth", {
         const token = response.data.token;
         this.setTokenAndUser(token, {
           email,
-          displayName: "User"
+          fullName: "User"
         });
 
         return { success: true };
@@ -57,7 +57,7 @@ export const useAuthStore = defineStore("auth", {
         const displayName = `${payload.firstName} ${payload.lastName}`;
         this.setTokenAndUser(token, {
           email: payload.email,
-          displayName
+          fullName: displayName
         });
 
         return { success: true };
@@ -77,10 +77,11 @@ export const useAuthStore = defineStore("auth", {
       try {
         const decodedToken = jwtDecode<DecodedToken>(token);
         this.user = {
-          uid: decodedToken._id,
+          id: decodedToken._id,
           isAdmin: decodedToken.isAdmin,
-          email: additionalUserData?.email || null,
-          displayName: additionalUserData?.displayName || "User"
+          email: additionalUserData?.email || "",
+          fullName: additionalUserData?.fullName || "User",
+          profileImage: additionalUserData?.profileImage || "",
         };
 
         localStorage.setItem("user", JSON.stringify(this.user));
@@ -107,22 +108,30 @@ export const useAuthStore = defineStore("auth", {
           this.token = token;
 
           const baseUser = {
-            uid: decodedToken._id,
+            _id: decodedToken._id,
             isAdmin: decodedToken.isAdmin
           }
 
           if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
             this.user = {
-              ...baseUser,
-              email: parsedUser.email,
-              displayName: parsedUser.displayName
+              id: baseUser._id,
+              isAdmin: baseUser.isAdmin,
+              email: parsedUser.email || "",
+              fullName: parsedUser.fullName || "User",
+              profileImage: parsedUser.profileImage || "",
+              phoneNumber: parsedUser.phoneNumber,
+              bio: parsedUser.bio,
+              location: parsedUser.location,
+              portfolio: parsedUser.portfolio
             };
           } else {
             this.user = {
-              ...baseUser,
-              email: null,
-              displayName: "User"
+              id: baseUser._id,
+              isAdmin: baseUser.isAdmin,
+              email: "",
+              fullName: "User",
+              profileImage: ""
             };
           }
         } catch (error: any) {

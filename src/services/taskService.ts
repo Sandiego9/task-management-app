@@ -4,8 +4,9 @@ import type { Task } from "../types/task";
 const baseUrl = import.meta.env.VITE_TASKS_API_BASE_URL;
 
 const taskServices = {
-  async fetchTasks(): Promise<Task[]> {
-    const { data } = await axios.get(`${baseUrl}/tasks`);
+  async fetchTasks(userId?: string): Promise<Task[]> {
+    const url = userId ? `${baseUrl}/tasks?userId=${userId}` : `${baseUrl}/tasks`;
+    const { data } = await axios.get(url);
     return data as Task[]
   },
 
@@ -16,8 +17,8 @@ const taskServices = {
 
   async updateTask(
     id: string | number,
-    updatedTask: Omit<Task, "id">
-  ): Promise<Task | null> {
+    updatedTask: Partial<Omit<Task, "id">> & { userId: string }
+  ): Promise<Task> {
     const { data } = await axios.put(`${baseUrl}/tasks/${id}`, updatedTask);
     return data as Task;
   },
