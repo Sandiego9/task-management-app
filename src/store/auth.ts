@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import type { DecodedToken, AuthenticatedUser } from "../types/user";
 import axios from "axios";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const baseUrl = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({

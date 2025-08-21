@@ -58,7 +58,7 @@
 
       <!-- Tasks Table -->
       <DataTable
-        :value="tasks"
+        :value="formattedTasks"
         v-model:selection="selectedTasks"
         selectionMode="multiple"
         dataKey="id"
@@ -180,19 +180,21 @@ const rowMenuRef = ref();
 const searchQuery = ref("");
 const currentRowMenu = ref<any[]>([]);
 const tasks = ref<Task[]>([]);
+const formattedTasks = ref<Task[]>([]);
 const selectedTasks = ref<Task[]>([]);
 const isModalVisible = ref(false);
 const isModalLoading = ref(false);
 const editingTask = ref<Task | null>(null);
 
 const searchTasks = (): void => {
-  searchQuery.value = searchQuery.value.trim().toLowerCase();
-  if (searchQuery.value) {
-    tasks.value = tasks.value.filter((task) =>
-      task.name.toLowerCase().includes(searchQuery.value)
+  const query = searchQuery.value.trim().toLowerCase();
+
+  if (query) {
+    formattedTasks.value = tasks.value.filter((task) =>
+      task.name.toLowerCase().includes(query)
     );
   } else {
-    fetchTasks();
+    formattedTasks.value = [...tasks.value];
   }
 };
 
@@ -215,6 +217,7 @@ const toggleMenu = (event: Event) => {
 
 const fetchTasks = async () => {
   tasks.value = await taskServices.fetchTasks();
+  formattedTasks.value = [...tasks.value];
 };
 
 const statusLabel = (status: string) => {
