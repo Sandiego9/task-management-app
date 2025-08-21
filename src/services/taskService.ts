@@ -1,50 +1,33 @@
+import axios from "axios";
 import type { Task } from "../types/task";
-import { dummyTasks } from "../dummyData";
 
-let tasks: Task[] = [...dummyTasks]; // create a local mutable copy
-
-const simulateDelay = (ms = 500) => new Promise((res) => setTimeout(res, ms));
+const baseUrl = import.meta.env.VITE_TASKS_API_BASE_URL;
 
 const taskServices = {
   async fetchTasks(): Promise<Task[]> {
-    await simulateDelay();
-    return [...tasks]; // return a shallow copy
+    const { data } = await axios.get(`${baseUrl}/tasks`);
+    return data as Task[]
   },
 
   async createTask(newTask: Omit<Task, "id">): Promise<Task> {
-    await simulateDelay();
-    const task: Task = {
-      id: Date.now().toString(),
-      ...newTask,
-    };
-    tasks.unshift(task);
-    return task;
+    const { data } = await axios.post(`${baseUrl}/tasks`, newTask);
+    return data as Task;
   },
 
   async updateTask(
-    id: string,
+    id: string | number,
     updatedTask: Omit<Task, "id">
   ): Promise<Task | null> {
-    await simulateDelay();
-    const index = tasks.findIndex((t) => t.id === id);
-    if (index === -1) return null;
-
-    tasks[index] = { ...tasks[index], ...updatedTask };
-    return tasks[index];
+    const { data } = await axios.put(`${baseUrl}/tasks/${id}`, updatedTask);
+    return data as Task;
   },
 
-  async deleteTask(id: string): Promise<boolean> {
-    await simulateDelay();
-    const originalLength = tasks.length;
-    tasks = tasks.filter((t) => t.id !== id);
-    return tasks.length < originalLength;
+  async deleteTask(id: string): Promise<void> {
+    await axios.delete(`${baseUrl}/tasks/${id}`);
   },
 
-  async deleteMultipleTasks(ids: string[]): Promise<boolean> {
-    await simulateDelay();
-    const originalLength = tasks.length;
-    tasks = tasks.filter((t) => !ids.includes(t.id));
-    return tasks.length < originalLength;
+  async deleteMultipleTasks(ids: (string | number)[]): Promise<void> {
+    await Promise.all(ids.map((id) => axios.delete(`${baseUrl}/tasks/${id}`)));
   },
 };
 
