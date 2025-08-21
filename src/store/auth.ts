@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { jwtDecode } from "jwt-decode";
 import type { DecodedToken, AuthenticatedUser } from "../types/user";
 import axios from "axios";
+import userServices from "@/services/userServices";
 
 const baseUrl = import.meta.env.VITE_AUTH_API_BASE_URL;
 
@@ -22,19 +23,16 @@ export const useAuthStore = defineStore("auth", {
       try {
         const response = await axios.post(`${baseUrl}/auth/login`, {
           email,
-          password
+          password,
         });
 
         const token = response.data.token;
-        this.setTokenAndUser(token, {
-          email,
-          fullName: "User"
-        });
+        await this.setTokenAndUser(token, { email });
 
         return { success: true };
       } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || "Login failed.";
-
+        const errorMessage =
+          error?.response?.data?.message || "Login failed.";
         return { success: false, errorMessage };
       } finally {
         this.isLoading = false;
@@ -54,39 +52,54 @@ export const useAuthStore = defineStore("auth", {
         const response = await axios.post(`${baseUrl}/auth/signup`, payload);
         const token = response.data.token;
 
-        const displayName = `${payload.firstName} ${payload.lastName}`;
-        this.setTokenAndUser(token, {
+        await this.setTokenAndUser(token, {
           email: payload.email,
-          fullName: displayName
+          fullName: `${payload.firstName} ${payload.lastName}`,
         });
 
         return { success: true };
       } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || "Registration failed.";
-
+        const errorMessage =
+          error?.response?.data?.message || "Registration failed.";
         return { success: false, errorMessage };
       } finally {
         this.isLoading = false;
       }
     },
 
-    setTokenAndUser(token: string, additionalUserData?: Partial<AuthenticatedUser>) {
+    async setTokenAndUser(
+      token: string,
+      additionalUserData?: Partial<AuthenticatedUser>
+    ) {
       this.token = token;
       localStorage.setItem("auth_token", token);
 
       try {
         const decodedToken = jwtDecode<DecodedToken>(token);
-        this.user = {
-          id: decodedToken._id,
-          isAdmin: decodedToken.isAdmin,
-          email: additionalUserData?.email || "",
-          fullName: additionalUserData?.fullName || "User",
-          profileImage: additionalUserData?.profileImage || "",
-        };
+        const userId = decodedToken._id;
 
-        localStorage.setItem("user", JSON.stringify(this.user));
+        let existingUser = await userServices.fetchUser(userId);
+
+        if (!existingUser) {
+          const newUser: AuthenticatedUser = {
+            id: userId,
+            email: additionalUserData?.email || "",
+            fullName: additionalUserData?.fullName || "User",
+            profileImage: additionalUserData?.profileImage || "",
+            phoneNumber: "",
+            bio: "",
+            location: "",
+            portfolio: "",
+            isAdmin: decodedToken.isAdmin,
+          };
+
+          existingUser = await userServices.createUser(newUser);
+        }
+
+        this.user = existingUser;
+        localStorage.setItem("user", JSON.stringify(existingUser));
       } catch (error: any) {
-        console.error("Failed to decode token", error);
+        console.error("Failed to set token and user", error);
         this.logout();
       }
     },
@@ -98,48 +111,22 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("user");
     },
 
-    init() {
+    async init() {
       const token = localStorage.getItem("auth_token");
-      const storedUser = localStorage.getItem("user");
-
-      if (token) {
-        try {
-          const decodedToken = jwtDecode<DecodedToken>(token);
-          this.token = token;
-
-          const baseUser = {
-            _id: decodedToken._id,
-            isAdmin: decodedToken.isAdmin
-          }
-
-          if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            this.user = {
-              id: baseUser._id,
-              isAdmin: baseUser.isAdmin,
-              email: parsedUser.email || "",
-              fullName: parsedUser.fullName || "User",
-              profileImage: parsedUser.profileImage || "",
-              phoneNumber: parsedUser.phoneNumber,
-              bio: parsedUser.bio,
-              location: parsedUser.location,
-              portfolio: parsedUser.portfolio
-            };
-          } else {
-            this.user = {
-              id: baseUser._id,
-              isAdmin: baseUser.isAdmin,
-              email: "",
-              fullName: "User",
-              profileImage: ""
-            };
-          }
-        } catch (error: any) {
-          console.error("Failed to decode token on initialization", error);
-          this.logout();
-        }
+      if (!token) {
+        this.isLoading = false;
+        return;
       }
-      this.isLoading = false;
+
+      this.token = token;
+      try {
+        await this.setTokenAndUser(token);
+      } catch (error: any) {
+        console.error("Failed to init auth store", error);
+        this.logout();
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 });

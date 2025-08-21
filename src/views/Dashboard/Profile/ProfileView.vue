@@ -4,7 +4,7 @@
 
     <Card class="mb-4">
       <template #content>
-        <div class="flex align-items-center gap-4">
+        <div class="flex flex-column align-items-center gap-4">
           <Avatar
             :image="user?.profileImage || ''"
             icon="pi pi-user"
@@ -25,11 +25,11 @@
     </Card>
 
     <div class="grid gap-3">
-      <div class="col-12 md:col-6">
+      <div class="col-12 md:col-4">
         <strong>Phone:</strong>
         <p>{{ user?.phoneNumber || "Not yet provided" }}</p>
       </div>
-      <div class="col-12 md:col-6">
+      <div class="col-12 md:col-4">
         <strong>Location:</strong>
         <p>{{ user?.location || "Not yet provided" }}</p>
       </div>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
@@ -89,49 +89,49 @@ const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
-const user = ref<AuthenticatedUser | null>(null);
+const user = computed(() => authStore.user);
 const isModalVisible = ref(false);
 const isModalLoading = ref(false);
 
-const fetchUser = async () => {
-  try {
-    if (!authStore.user?.id) throw new Error("Missing user ID");
+// const fetchUser = async () => {
+//   try {
+//     if (!authStore.user?.id) throw new Error("Missing user ID");
 
-    let existing = await userServices.fetchUser(authStore.user.id);
+//     let existing = await userServices.fetchUser(authStore.user.id);
 
-    if (!existing) {
-      const newUser: AuthenticatedUser = {
-        id: authStore.user.id,
-        fullName: authStore.user.fullName || "User",
-        email: authStore.user.email,
-        profileImage: authStore.user.profileImage || "",
-        phoneNumber: "",
-        bio: "",
-        location: "",
-        portfolio: "",
-        isAdmin: authStore.user.isAdmin
-      };
+//     if (!existing) {
+//       const newUser: AuthenticatedUser = {
+//         id: authStore.user.id,
+//         fullName: authStore.user.fullName || "User",
+//         email: authStore.user.email,
+//         profileImage: authStore.user.profileImage || "",
+//         phoneNumber: "",
+//         bio: "",
+//         location: "",
+//         portfolio: "",
+//         isAdmin: authStore.user.isAdmin
+//       };
 
-      existing = await userServices.createUser(newUser);
+//       existing = await userServices.createUser(newUser);
 
-      toast.add({
-        severity: "info",
-        summary: "New User",
-        detail: "Please update your profile information.",
-        life: 3000
-      })
-    }
+//       toast.add({
+//         severity: "info",
+//         summary: "New User",
+//         detail: "Please update your profile information.",
+//         life: 3000
+//       })
+//     }
     
-    user.value = existing;
-  } catch (err) {
-    toast.add({
-      severity: "error",
-      summary: "Error Fetching User",
-      detail: "Could not load user data.",
-      life: 3000
-    });
-  }
-};
+//     user.value = existing;
+//   } catch (err) {
+//     toast.add({
+//       severity: "error",
+//       summary: "Error Fetching User",
+//       detail: "Could not load user data.",
+//       life: 3000
+//     });
+//   }
+// };
 
 const openEditModal = () => {
   isModalVisible.value = true;
@@ -146,6 +146,7 @@ const handleSave = async (updatedUser: AuthenticatedUser) => {
   try {
     if (!user.value?.id) throw new Error("User ID is missing.");
 
+    // update user in DB
     const updated = await userServices.updateUser(user.value.id, {
       fullName: updatedUser.fullName,
       profileImage: updatedUser.profileImage,
@@ -157,22 +158,9 @@ const handleSave = async (updatedUser: AuthenticatedUser) => {
       isAdmin: updatedUser.isAdmin,
     });
 
-    user.value = updated;
-    
-    if (authStore.user) {
-      authStore.user = {
-        id: authStore.user.id,
-        email: authStore.user.email,
-        isAdmin: authStore.user.isAdmin,
-        fullName: updated.fullName,
-        profileImage: updated.profileImage,
-        phoneNumber: updated.phoneNumber,
-        bio: updated.bio,
-        location: updated.location,
-        portfolio: updated.portfolio,
-      };
-      localStorage.setItem("user", JSON.stringify(authStore.user));
-    }
+    // 🔥 update store directly instead of local `user`
+    authStore.user = updated;
+    localStorage.setItem("user", JSON.stringify(updated));
 
     toast.add({
       severity: "success",
@@ -199,5 +187,5 @@ const onLogout = () => {
   toast.add({ severity: "success", summary: "Logout Successful", life: 3000 });
 };
 
-onMounted(fetchUser);
+// onMounted(fetchUser);
 </script>

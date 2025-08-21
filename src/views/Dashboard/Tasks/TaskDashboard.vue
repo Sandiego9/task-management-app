@@ -212,7 +212,8 @@ const toggleMenu = (event: Event) => {
 };
 
 const fetchTasks = async () => {
-  tasks.value = await taskServices.fetchTasks();
+  if (!authStore.user?.id) return;
+  tasks.value = await taskServices.fetchTasks(authStore.user.id);
   formattedTasks.value = [...tasks.value];
 };
 
@@ -264,10 +265,18 @@ const statusIcon = (status: string): string => {
 const handleSave = async (taskData: Omit<Task, "id">) => {
   isModalLoading.value = true;
   try {
+    if (!authStore.user?.id) throw new Error("Missing user ID");
+
     if (editingTask.value) {
-      await taskServices.updateTask(editingTask.value.id, taskData);
+      await taskServices.updateTask(editingTask.value.id, {
+        ...taskData,
+        userId: authStore.user.id,
+      });
     } else {
-      await taskServices.createTask(taskData);
+      await taskServices.createTask({
+        ...taskData,
+        userId: authStore.user.id,
+      });
     }
     closeModal();
     fetchTasks();

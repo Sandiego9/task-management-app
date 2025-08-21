@@ -100,6 +100,7 @@ watch(isVisible, (val) => {
 const form = ref<Omit<Task, "id">>({
   name: "",
   status: "" as TaskStatus,
+  userId: "",
 });
 
 const errors = ref<{ name: string; status: string }>({
@@ -124,9 +125,10 @@ watch(
         form.value = {
           name: props.task.name,
           status: props.task.status,
+          userId: props.task.userId,
         };
       } else {
-        form.value = { name: "", status: "" as TaskStatus };
+        form.value = { name: "", status: "" as TaskStatus, userId: "" };
       }
       errors.value = { name: "", status: "" };
     }

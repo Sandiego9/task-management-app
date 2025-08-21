@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Task } from "../types/task";
+import type { Task } from "@/types/task";
 
 const baseUrl = import.meta.env.VITE_TASKS_API_BASE_URL;
 
@@ -7,10 +7,10 @@ const taskServices = {
   async fetchTasks(userId?: string): Promise<Task[]> {
     const url = userId ? `${baseUrl}/tasks?userId=${userId}` : `${baseUrl}/tasks`;
     const { data } = await axios.get(url);
-    return data as Task[]
+    return data as Task[];
   },
 
-  async createTask(newTask: Omit<Task, "id">): Promise<Task> {
+  async createTask(newTask: Omit<Task, "id"> & { userId: string }): Promise<Task> {
     const { data } = await axios.post(`${baseUrl}/tasks`, newTask);
     return data as Task;
   },
@@ -27,7 +27,7 @@ const taskServices = {
     await axios.delete(`${baseUrl}/tasks/${id}`);
   },
 
-  async deleteMultipleTasks(ids: (string | number)[]): Promise<void> {
+  async deleteMultipleTasks(ids: string[]): Promise<void> {
     await Promise.all(ids.map((id) => axios.delete(`${baseUrl}/tasks/${id}`)));
   },
 };
