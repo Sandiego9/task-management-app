@@ -8,6 +8,7 @@ import Aura from "@primeuix/themes/aura";
 import Toast from "primevue/toast";
 import ToastService from "primevue/toastservice";
 import ConfirmationService from "primevue/confirmationservice";
+import setupVeeValidate from "./plugins/vee-validate";
 import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
 import "./style.css";
@@ -19,6 +20,7 @@ app.use(pinia);
 const authStore = useAuthStore();
 
 authStore.init();
+setupVeeValidate();
 
 app.use(router);
 app.use(ToastService);
