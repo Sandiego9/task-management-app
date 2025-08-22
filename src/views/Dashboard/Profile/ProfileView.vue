@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4">
+  <div class="px-4">
     <h2 class="text-2xl font-bold mb-4">My Profile</h2>
 
     <Card class="mb-4">
@@ -10,6 +10,7 @@
             icon="pi pi-user"
             shape="circle"
             size="xlarge"
+            class="border-1 border-300"
           />
           <div>
             <h3 class="m-0 text-xl font-bold">{{ user?.fullName || "Your Full Name" }}</h3>
@@ -25,21 +26,21 @@
     </Card>
 
     <div class="grid gap-3">
-      <div class="col-12 md:col-4">
+      <div class="border-1 border-300 border-round-2xl col-8 md:col-4">
         <strong>Phone:</strong>
-        <p>{{ user?.phoneNumber || "Not yet provided" }}</p>
+        <p class="mt-0">{{ user?.phoneNumber || "Not yet provided" }}</p>
       </div>
-      <div class="col-12 md:col-4">
+      <div class="border-1 border-300 border-round-2xl col-8 md:col-4">
         <strong>Location:</strong>
-        <p>{{ user?.location || "Not yet provided" }}</p>
+        <p class="mt-0">{{ user?.location || "Not yet provided" }}</p>
       </div>
-      <div class="col-12">
+      <div class="border-1 border-300 border-round-2xl col-8">
         <strong>Bio:</strong>
-        <p>{{ user?.bio || "Not yet provided" }}</p>
+        <p class="mt-0">{{ user?.bio || "Not yet provided" }}</p>
       </div>
-      <div class="col-12">
+      <div class="border-1 border-300 border-round-2xl col-8">
         <strong>Portfolio:</strong>
-        <p>
+        <p class="mt-0">
           <a v-if="user?.portfolio" :href="user.portfolio" target="_blank">
             {{ user.portfolio }}
           </a>
@@ -55,10 +56,10 @@
         @click="openEditModal"
       />
       <Button
-        label="Logout"
-        icon="pi pi-sign-out"
-        severity="danger"
-        @click="onLogout"
+        label="Change Password"
+        icon="pi pi-lock"
+        severity="warning"
+        @click="openPasswordModal"
       />
     </div>
 
@@ -69,13 +70,19 @@
       @save="handleSave"
       @close="closeModal"
     />
+
+    <ChangePasswordModal
+      :visible="isPasswordModalVisible"
+      :loading="isPasswordLoading"
+      @close="closePasswordModal"
+      @save="handlePasswordChange"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, computed } from "vue";
 import { useAuthStore } from "@/store/auth";
-import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import type { AuthenticatedUser } from "@/types/user";
 import userServices from "@/services/userServices";
@@ -84,54 +91,16 @@ import Avatar from "primevue/avatar";
 import Tag from "primevue/tag";
 import Card from "primevue/card";
 import ProfileModal from "./components/ProfileModule.vue";
+import ChangePasswordModal from "./components/ChangePasswordModal.vue";
 
 const authStore = useAuthStore();
-const router = useRouter();
 const toast = useToast();
 
 const user = computed(() => authStore.user);
 const isModalVisible = ref(false);
 const isModalLoading = ref(false);
-
-// const fetchUser = async () => {
-//   try {
-//     if (!authStore.user?.id) throw new Error("Missing user ID");
-
-//     let existing = await userServices.fetchUser(authStore.user.id);
-
-//     if (!existing) {
-//       const newUser: AuthenticatedUser = {
-//         id: authStore.user.id,
-//         fullName: authStore.user.fullName || "User",
-//         email: authStore.user.email,
-//         profileImage: authStore.user.profileImage || "",
-//         phoneNumber: "",
-//         bio: "",
-//         location: "",
-//         portfolio: "",
-//         isAdmin: authStore.user.isAdmin
-//       };
-
-//       existing = await userServices.createUser(newUser);
-
-//       toast.add({
-//         severity: "info",
-//         summary: "New User",
-//         detail: "Please update your profile information.",
-//         life: 3000
-//       })
-//     }
-    
-//     user.value = existing;
-//   } catch (err) {
-//     toast.add({
-//       severity: "error",
-//       summary: "Error Fetching User",
-//       detail: "Could not load user data.",
-//       life: 3000
-//     });
-//   }
-// };
+const isPasswordLoading = ref(false);
+const isPasswordModalVisible = ref(false);
 
 const openEditModal = () => {
   isModalVisible.value = true;
@@ -141,12 +110,19 @@ const closeModal = () => {
   isModalVisible.value = false;
 };
 
+const openPasswordModal = () => {
+  isPasswordModalVisible.value = true;
+};
+
+const closePasswordModal = () => {
+  isPasswordModalVisible.value = false;
+};
+
 const handleSave = async (updatedUser: AuthenticatedUser) => {
   isModalLoading.value = true;
   try {
     if (!user.value?.id) throw new Error("User ID is missing.");
 
-    // update user in DB
     const updated = await userServices.updateUser(user.value.id, {
       fullName: updatedUser.fullName,
       profileImage: updatedUser.profileImage,
@@ -158,7 +134,6 @@ const handleSave = async (updatedUser: AuthenticatedUser) => {
       isAdmin: updatedUser.isAdmin,
     });
 
-    // 🔥 update store directly instead of local `user`
     authStore.user = updated;
     localStorage.setItem("user", JSON.stringify(updated));
 
@@ -181,11 +156,40 @@ const handleSave = async (updatedUser: AuthenticatedUser) => {
   }
 };
 
-const onLogout = () => {
-  authStore.logout();
-  router.push("/login");
-  toast.add({ severity: "success", summary: "Logout Successful", life: 3000 });
-};
+const handlePasswordChange = async (payload: {
+  currentPassword: string;
+  newPassword: string;
+}) => {
+  isPasswordLoading.value = true;
+  try {
+    const { success, errorMessage } = await authStore.changePassword(payload);
 
-// onMounted(fetchUser);
+    if (success) {
+      toast.add({
+        severity: "success",
+        summary: "Password Changed",
+        detail: "Your password has been updated.",
+        life: 3000
+      });
+      closePasswordModal();
+    } else {
+      throw new Error(errorMessage);
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: error?.message || "Could not change Password.",
+      life: 3000
+    });
+  } finally {
+    isPasswordLoading.value = false;
+  }
+};
 </script>
+
+<style scoped>
+.grid {
+  place-content: center;
+}
+</style>

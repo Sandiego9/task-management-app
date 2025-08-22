@@ -67,6 +67,30 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
+    async changePassword(payload: {
+      currentPassword: string;
+      newPassword: string;
+    }) {
+      this.isLoading = true;
+      try {
+        if (!this.user?.id) throw new Error("User not found or not authenticated.");
+
+        await axios.post(`${baseUrl}/auth/change-password`, {
+          userId: this.user.id,
+          currentPassword: payload.currentPassword,
+          newPassword: payload.newPassword
+        });
+
+        return { success: true };
+      } catch (error: any) {
+        const errorMessage =
+          error?.response?.data?.message || "Password change failed.";
+        return { success: false, errorMessage };
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async setTokenAndUser(
       token: string,
       additionalUserData?: Partial<AuthenticatedUser>
