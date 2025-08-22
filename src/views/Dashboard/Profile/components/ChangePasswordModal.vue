@@ -3,39 +3,32 @@
     v-model:visible="isVisible"
     header="Change Password"
     modal
-    class="w-20rem"
+    class="w-25rem"
     :draggable="false"
   >
-    <form @submit.prevent="handleSubmit" class="flex flex-column gap-3">
+    <form @submit.prevent="onSubmit" class="flex flex-column gap-3">
       <div>
-        <label for="currentPassword">Current Password</label>
-        <Password
-          id="currentPassword"
-          v-model="form.currentPassword"
-          class="w-full"
-          toggleMask
-        />
+        <div class="flex justify-content-between align-items-center">
+          <label for="currentPassword">Current Password</label>
+          <small class="p-error text-red-500 text-xs">{{ errors.currentPassword }}</small>
+        </div>
+        <Password v-model="currentPassword" v-bind="cPasswordAttrs" toggleMask class="w-full" />
       </div>
 
       <div>
-        <label for="newPassword">New Password</label>
-        <Password
-          id="newPassword"
-          v-model="form.newPassword"
-          class="w-full"
-          toggleMask
-        />
+        <div class="flex justify-content-between align-items-center">
+          <label for="newPassword">New Password</label>
+          <small class="p-error text-red-500 text-xs">{{ errors.newPassword }}</small>
+        </div>
+        <Password v-model="newPassword" v-bind="nPasswordAttrs" toggleMask class="w-full" />
       </div>
 
       <div>
-        <label for="confirmPassword">Confirm Password</label>
-        <Password
-          id="confirmPassword"
-          v-model="form.confirmPassword"
-          class="w-full"
-          toggleMask
-          :feedback="false"
-        />
+        <div class="flex justify-content-between align-items-center">
+          <label for="confirmPassword">Confirm Password</label>
+          <small class="p-error text-red-500 text-xs">{{ errors.confirmPassword }}</small>
+        </div>
+        <Password v-model="confirmPassword" v-bind="confirmPasswordAttrs" :feedback="false" toggleMask class="w-full" />
       </div>
 
       <div class="flex justify-content-end gap-2 mt-4">
@@ -48,14 +41,13 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { useForm } from "vee-validate";
+import * as yup from "yup";
 import Dialog from "primevue/dialog";
 import Password from "primevue/password";
 import Button from "primevue/button";
 
-const emit = defineEmits<{
-  (e: "save", payload: { currentPassword: string; newPassword: string }): void;
-  (e: "close"): void;
-}>();
+const emit = defineEmits(["save", "close"]);
 
 const props = defineProps<{
   visible: boolean;
@@ -65,23 +57,33 @@ const props = defineProps<{
 const isVisible = ref(props.visible);
 watch(() => props.visible, (val) => (isVisible.value = val));
 
-const form = ref({
-  currentPassword: "",
-  newPassword: "",
-  confirmPassword: "",
+const schema = yup.object({
+  currentPassword: yup.string().required("Current password is required"),
+  newPassword: yup
+    .string()
+    .min(6, "Must have at least 6 characters")
+    .required("New password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("newPassword")], "Passwords must match")
+    .required("Please confirm your password")
 });
 
-const handleSubmit = () => {
-  if (form.value.newPassword !== form.value.confirmPassword) {
-    alert("Passwords do not match!");
-    return;
-  }
+const { handleSubmit, errors, defineField, resetForm } = useForm({
+  validationSchema: schema
+});
 
-  emit("save", {
-    currentPassword: form.value.currentPassword,
-    newPassword: form.value.newPassword,
-  });
-};
+const [currentPassword, cPasswordAttrs] = defineField("currentPassword");
+const [newPassword, nPasswordAttrs] = defineField("newPassword");
+const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
+
+watch(() => props.visible, (val) => {
+  if (!val) resetForm();
+});
+
+const onSubmit = handleSubmit((values) => {
+  emit("save", values);
+});
 </script>
 
 <style scoped>
