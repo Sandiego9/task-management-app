@@ -18,7 +18,7 @@
             v-model="searchQuery"
             class="pl-5"
             placeholder="Search tasks..."
-            @input="searchTasks"
+            @input="debouncedSearch"
           />
         </div>
         <div class="flex align-items-center gap-3">
@@ -161,6 +161,7 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Tag from "primevue/tag";
 import TaskModal from "./components/TaskModal.vue";
+import { debounce } from "@/utils/debounce";
 
 const router = useRouter();
 const toast = useToast();
@@ -193,6 +194,8 @@ const searchTasks = (): void => {
     formattedTasks.value = [...tasks.value];
   }
 };
+
+const debouncedSearch = debounce(searchTasks, 500);
 
 const toggleRowMenu = (event: Event, task: Task) => {
   currentRowMenu.value = getRowActions(task);
