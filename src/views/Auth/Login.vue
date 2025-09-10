@@ -2,17 +2,25 @@
   <AuthLayout cardTitle="Welcome Back">
     <form @submit.prevent="onLogin" class="flex flex-column">
       <div>
-        <div class="flex justify-content-between">
+        <div class="flex justify-content-between align-items-center">
           <label for="email" class="font-medium text-left">Email</label>
-          <small v-if="errors.email" class="text-red-500 flex align-items-center">{{ errors.email }}</small>
+          <small
+            v-if="errors.email"
+            class="text-red-500 flex align-items-center"
+            >{{ errors.email }}</small
+          >
         </div>
         <InputText id="email" v-model="email" class="w-full" />
       </div>
 
       <div class="mt-3">
-        <div class="flex justify-content-between">
+        <div class="flex justify-content-between align-items-center">
           <label for="password" class="font-medium text-left">Password</label>
-          <small v-if="errors.password" class="text-red-500 flex align-items-center">{{ errors.password }}</small>
+          <small
+            v-if="errors.password"
+            class="text-red-500 flex align-items-center"
+            >{{ errors.password }}</small
+          >
         </div>
         <Password
           id="password"
@@ -24,7 +32,9 @@
       </div>
 
       <div class="mt-3 text-right">
-        <router-link to="/forgot-password" class="text-sm text-blue-500">Forgot Password?</router-link>
+        <router-link to="/forgot-password" class="text-sm text-blue-500"
+          >Forgot Password?</router-link
+        >
       </div>
 
       <Button
@@ -94,15 +104,15 @@ const onLogin = async () => {
       severity: "success",
       summary: "Login Successful",
       detail: "Welcome back!",
-      life: 3000
+      life: 3000,
     });
     router.push("/dashboard");
   } else {
     toast.add({
       severity: "error",
-      summary: "Login failed",
-      detail: errorMessage || "An error occured during login.",
-      life: 3000
+      summary: "Login Failed",
+      detail: errorMessage || "An error occurred during login.",
+      life: 3000,
     });
   }
 };

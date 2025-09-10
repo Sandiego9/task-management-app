@@ -18,49 +18,78 @@ export const useAuthStore = defineStore("auth", {
     getToken: (state) => state.token,
   },
   actions: {
-    async login(email: string, password: string) {
+    async registerUser(payload: AuthenticatedUser) {
       this.isLoading = true;
       try {
-        const response = await axios.post(`${baseUrl}/auth/login`, {
-          email,
-          password,
-        });
+        const { data } = await axios.post(`${baseUrl}/Users`, payload);
 
-        const token = response.data.token;
-        await this.setTokenAndUser(token, { email });
+        if (!data?.isSuccessful) {
+          throw new Error(
+            data?.errors?.join(", ") || "User registration failed"
+          );
+        }
 
-        return { success: true };
-      } catch (error: any) {
-        const errorMessage =
-          error?.response?.data?.message || "Login failed.";
-        return { success: false, errorMessage };
+        const userId = data.data;
+
+        this.user = {
+          id: userId,
+          email: payload.email,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          fullName: `${payload.firstName} ${payload.lastName}`,
+          jobTitle: payload.jobTitle,
+          accountType: payload.accountType,
+        };
+
+        localStorage.setItem("user", JSON.stringify(this.user));
+
+        return { success: true, userId };
+      } catch (err: any) {
+        return {
+          success: false,
+          errorMessage: err?.message || "User registration failed.",
+        };
       } finally {
         this.isLoading = false;
       }
     },
 
-    async register(payload: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      phoneNumber: string;
-      password: string;
-      isAdmin: boolean;
-    }) {
+    async login(email: string, password: string) {
       this.isLoading = true;
       try {
-        const response = await axios.post(`${baseUrl}/auth/signup`, payload);
-        const token = response.data.token;
-
-        await this.setTokenAndUser(token, {
-          email: payload.email,
-          fullName: `${payload.firstName} ${payload.lastName}`,
+        const { data } = await axios.post(`${baseUrl}/authentication/login`, {
+          email,
+          password,
         });
 
+        if (!data?.isSuccessful || !data?.data) {
+          throw new Error(data?.errors?.join(", ") || "Login failed.");
+        }
+
+        const userData = data.data;
+
+        // Build user object
+        this.user = {
+          id: userData.userId,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          fullName: `${userData.firstName} ${userData.lastName}`,
+          jobTitle: userData.jobTitle || "", // may be undefined from API
+          accountType: userData.accountType,
+        };
+
+        this.token = userData.accessToken;
+
+        // Persist to localStorage
+        localStorage.setItem("auth_token", this.token ?? "");
+        localStorage.setItem("user", JSON.stringify(this.user));
+
+        await this.setTokenAndUser(this.token!, this.user);
+
         return { success: true };
-      } catch (error: any) {
-        const errorMessage =
-          error?.response?.data?.message || "Registration failed.";
+      } catch (err: any) {
+        const errorMessage = err?.message || "Login failed.";
         return { success: false, errorMessage };
       } finally {
         this.isLoading = false;
@@ -73,12 +102,13 @@ export const useAuthStore = defineStore("auth", {
     }) {
       this.isLoading = true;
       try {
-        if (!this.user?.id) throw new Error("User not found or not authenticated.");
+        if (!this.user?.id)
+          throw new Error("User not found or not authenticated.");
 
         await axios.post(`${baseUrl}/auth/change-password`, {
           userId: this.user.id,
           currentPassword: payload.currentPassword,
-          newPassword: payload.newPassword
+          newPassword: payload.newPassword,
         });
 
         return { success: true };
@@ -100,21 +130,23 @@ export const useAuthStore = defineStore("auth", {
 
       try {
         const decodedToken = jwtDecode<DecodedToken>(token);
-        const userId = decodedToken._id;
+        const userId = decodedToken.sub;
+        const role =
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ];
 
         let existingUser = await userServices.fetchUser(userId);
 
         if (!existingUser) {
           const newUser: AuthenticatedUser = {
             id: userId,
-            email: additionalUserData?.email || "",
-            fullName: additionalUserData?.fullName || "User",
-            profileImage: additionalUserData?.profileImage || "",
-            phoneNumber: "",
-            bio: "",
-            location: "",
-            portfolio: "",
-            isAdmin: decodedToken.isAdmin,
+            email: additionalUserData?.email || decodedToken.email,
+            firstName: additionalUserData?.firstName || "",
+            lastName: additionalUserData?.lastName || "",
+            fullName: additionalUserData?.fullName || "",
+            jobTitle: additionalUserData?.jobTitle || "",
+            accountType: additionalUserData?.accountType || role || "User",
           };
 
           existingUser = await userServices.createUser(newUser);
@@ -122,7 +154,7 @@ export const useAuthStore = defineStore("auth", {
 
         this.user = existingUser;
         localStorage.setItem("user", JSON.stringify(existingUser));
-      } catch (error: any) {
+      } catch (error) {
         console.error("Failed to set token and user", error);
         this.logout();
       }

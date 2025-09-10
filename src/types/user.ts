@@ -1,17 +1,19 @@
 export interface AuthenticatedUser {
-  id: string;
-  fullName: string;
-  profileImage: string;
+  id?: string;
   email: string;
-  phoneNumber?: string;
-  bio?: string;
-  location?: string;
-  portfolio?: string;
-  isAdmin: boolean;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
+  jobTitle: string;
+  accountType: string;
 }
 
 export interface DecodedToken {
-  _id: string;
-  isAdmin: boolean;
-  iat: number;
-};
+  email: string;
+  sub: string; // user ID
+  jti: string;
+  aud: string;
+  iss: string;
+  exp: number;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+}

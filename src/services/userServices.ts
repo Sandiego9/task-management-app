@@ -21,29 +21,33 @@ const userServices = {
       const { data } = await axios.get(`${baseUrl}/users/${id}`);
       return data as AuthenticatedUser;
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw error;;
-    }    
+      if (error.response?.status === 404) return null;
+      throw error;
+    }
   },
 
   async createUser(newUser: AuthenticatedUser): Promise<AuthenticatedUser> {
-    const payload = {
-      ...newUser,
-      id: newUser.id
+    try {
+      const { data } = await axios.post(`${baseUrl}/users`, newUser);
+      return data as AuthenticatedUser;
+    } catch (error) {
+      console.error("Failed to create user", error);
+      throw error;
     }
-    const { data } = await axios.post(`${baseUrl}/users`, payload);
-    return data as AuthenticatedUser;
   },
 
   async updateUser(
     id: string,
     updatedUser: Omit<AuthenticatedUser, "id">
   ): Promise<AuthenticatedUser> {
-    const { data } = await axios.put(`${baseUrl}/users/${id}`, updatedUser);
-    return data as AuthenticatedUser;
-  }
+    try {
+      const { data } = await axios.put(`${baseUrl}/users/${id}`, updatedUser);
+      return data as AuthenticatedUser;
+    } catch (error) {
+      console.error("Failed to update user", error);
+      throw error;
+    }
+  },
 };
 
 export default userServices;
