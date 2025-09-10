@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "@/store/sample.auth";
 import { useToast } from "primevue/usetoast";
 import type { AuthenticatedUser } from "@/types/user";
 import userServices from "@/services/userServices";

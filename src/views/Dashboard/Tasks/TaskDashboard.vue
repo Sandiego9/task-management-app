@@ -146,7 +146,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "@/store/sample.auth";
 import { useToast } from "primevue/usetoast";
 import { useConfirm } from "primevue/useconfirm";
 import { InputText } from "primevue";

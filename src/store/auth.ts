@@ -1,44 +1,49 @@
 import { defineStore } from "pinia";
-import { jwtDecode } from "jwt-decode";
-import type { DecodedToken, AuthenticatedUser } from "../types/user";
 import axios from "axios";
-import userServices from "@/services/userServices";
+import { jwtDecode } from "jwt-decode";
+import type { AuthenticatedUser, DecodedToken } from "@/types/user";
 
 const baseUrl = import.meta.env.VITE_AUTH_API_BASE_URL;
 
+interface State {
+  user: AuthenticatedUser | null;
+  token: string | null;
+  isLoading: boolean;
+}
+
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: null as AuthenticatedUser | null,
-    token: "" as string | null,
-    isLoading: false as boolean,
+  state: (): State => ({
+    user: null,
+    token: null,
+    isLoading: false,
   }),
+
   getters: {
     isAuthenticated: (state) => !!state.token,
-    getUser: (state) => state.user,
-    getToken: (state) => state.token,
   },
+
   actions: {
+    // LOGIN
     async login(email: string, password: string) {
       this.isLoading = true;
       try {
-        const response = await axios.post(`${baseUrl}/auth/login`, {
+        const { data } = await axios.post(`${baseUrl}/authentication/login`, {
           email,
           password,
         });
 
-        const token = response.data.token;
-        await this.setTokenAndUser(token, { email });
+        const token = data.token;
+        this.setTokenAndUser(token);
 
         return { success: true };
       } catch (error: any) {
-        const errorMessage =
-          error?.response?.data?.message || "Login failed.";
-        return { success: false, errorMessage };
+        return { success: false, errorMessage: error?.response?.data?.message || "Login failed" };
       } finally {
         this.isLoading = false;
       }
     },
 
+    // REGISTER
     async register(payload: {
       firstName: string;
       lastName: string;
@@ -49,85 +54,53 @@ export const useAuthStore = defineStore("auth", {
     }) {
       this.isLoading = true;
       try {
-        const response = await axios.post(`${baseUrl}/auth/signup`, payload);
-        const token = response.data.token;
+        const { data } = await axios.post(`${baseUrl}/authentication/signup`, payload);
 
-        await this.setTokenAndUser(token, {
-          email: payload.email,
-          fullName: `${payload.firstName} ${payload.lastName}`,
-        });
+        const token = data.token;
+        this.setTokenAndUser(token);
 
         return { success: true };
       } catch (error: any) {
-        const errorMessage =
-          error?.response?.data?.message || "Registration failed.";
-        return { success: false, errorMessage };
+        return { success: false, errorMessage: error?.response?.data?.message || "Registration failed" };
       } finally {
         this.isLoading = false;
       }
     },
 
-    async changePassword(payload: {
-      currentPassword: string;
-      newPassword: string;
-    }) {
-      this.isLoading = true;
+    // RESET PASSWORD (request link)
+    async requestPasswordReset(email: string) {
       try {
-        if (!this.user?.id) throw new Error("User not found or not authenticated.");
-
-        await axios.post(`${baseUrl}/auth/change-password`, {
-          userId: this.user.id,
-          currentPassword: payload.currentPassword,
-          newPassword: payload.newPassword
-        });
-
+        await axios.post(`${baseUrl}/authentication/password-reset`, { email });
         return { success: true };
-      } catch (error: any) {
-        const errorMessage =
-          error?.response?.data?.message || "Password change failed.";
-        return { success: false, errorMessage };
-      } finally {
-        this.isLoading = false;
+      } catch {
+        return { success: false, errorMessage: "Failed to send reset email" };
       }
     },
 
-    async setTokenAndUser(
-      token: string,
-      additionalUserData?: Partial<AuthenticatedUser>
-    ) {
-      this.token = token;
-      localStorage.setItem("auth_token", token);
-
+    // CONFIRM RESET PASSWORD (with token)
+    async confirmPasswordReset(payload: { token: string; newPassword: string }) {
       try {
-        const decodedToken = jwtDecode<DecodedToken>(token);
-        const userId = decodedToken._id;
-
-        let existingUser = await userServices.fetchUser(userId);
-
-        if (!existingUser) {
-          const newUser: AuthenticatedUser = {
-            id: userId,
-            email: additionalUserData?.email || "",
-            fullName: additionalUserData?.fullName || "User",
-            profileImage: additionalUserData?.profileImage || "",
-            phoneNumber: "",
-            bio: "",
-            location: "",
-            portfolio: "",
-            isAdmin: decodedToken.isAdmin,
-          };
-
-          existingUser = await userServices.createUser(newUser);
-        }
-
-        this.user = existingUser;
-        localStorage.setItem("user", JSON.stringify(existingUser));
-      } catch (error: any) {
-        console.error("Failed to set token and user", error);
-        this.logout();
+        await axios.post(`${baseUrl}/authentication/password-reset/confirm`, payload);
+        return { success: true };
+      } catch {
+        return { success: false, errorMessage: "Failed to reset password" };
       }
     },
 
+    // CHANGE PASSWORD (when logged in)
+    async changePassword(payload: { oldPassword: string; newPassword: string }) {
+      try {
+        await axios.post(`${baseUrl}/authentication/change-password`, {
+          userId: this.user?.id,
+          ...payload,
+        });
+        return { success: true };
+      } catch {
+        return { success: false, errorMessage: "Failed to change password" };
+      }
+    },
+
+    // LOGOUT
     logout() {
       this.user = null;
       this.token = null;
@@ -135,21 +108,29 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("user");
     },
 
-    async init() {
-      const token = localStorage.getItem("auth_token");
-      if (!token) {
-        this.isLoading = false;
-        return;
-      }
-
+    setTokenAndUser(token: string) {
       this.token = token;
-      try {
-        await this.setTokenAndUser(token);
-      } catch (error: any) {
-        console.error("Failed to init auth store", error);
-        this.logout();
-      } finally {
-        this.isLoading = false;
+      localStorage.setItem("auth_token", token);
+
+      const decoded = jwtDecode<DecodedToken>(token);
+      this.user = {
+        id: decoded._id,
+        email: decoded.email,
+        isAdmin: decoded.isAdmin,
+        fullName: decoded.fullName || "User",
+        profileImage: decoded.profileImage || "",
+      };
+
+      localStorage.setItem("user", JSON.stringify(this.user));
+    },
+
+    init() {
+      const token = localStorage.getItem("auth_token");
+      const storedUser = localStorage.getItem("user");
+
+      if (token && storedUser) {
+        this.token = token;
+        this.user = JSON.parse(storedUser);
       }
     },
   },

@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "../store/auth";
+import { useAuthStore } from "../store/sample.auth";
 import Button from "primevue/button";
 
 const router = useRouter();
