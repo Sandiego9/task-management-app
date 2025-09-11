@@ -13,11 +13,18 @@
             class="border-1 border-300"
           />
           <div>
-            <h3 class="m-0 text-xl font-bold">{{ user?.fullName || "Your Full Name" }}</h3>
-            <p class="m-0 text-gray-500">{{ authStore.user?.email || "user@email.com" }}</p>
+            <h3 class="m-0 text-xl font-bold">
+              {{ user?.fullName || "Your Full Name" }}
+            </h3>
+            <p class="m-0 text-gray-500">
+              {{ authStore.user?.email || "user@email.com" }}
+            </p>
+            <p class="m-0 text-sm text-gray-500">
+              {{ user?.jobTitle || "Job title not provided" }}
+            </p>
             <Tag
-              :value="authStore.user?.isAdmin ? 'Admin' : 'User'"
-              :severity="authStore.user?.isAdmin ? 'info' : 'success'"
+              :value="!authStore.user?.accountType ? 'Admin' : 'User'"
+              :severity="authStore.user?.accountType ? 'info' : 'success'"
               class="mt-2"
             />
           </div>
@@ -50,11 +57,7 @@
     </div>
 
     <div class="flex justify-content-end gap-3 mt-4">
-      <Button
-        label="Edit Profile"
-        icon="pi pi-pencil"
-        @click="openEditModal"
-      />
+      <Button label="Edit Profile" icon="pi pi-pencil" @click="openEditModal" />
       <Button
         label="Change Password"
         icon="pi pi-lock"
@@ -82,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useAuthStore } from "@/store/sample.auth";
+import { useAuthStore } from "@/store/auth";
 import { useToast } from "primevue/usetoast";
 import type { AuthenticatedUser } from "@/types/user";
 import userServices from "@/services/userServices";
@@ -125,13 +128,16 @@ const handleSave = async (updatedUser: AuthenticatedUser) => {
 
     const updated = await userServices.updateUser(user.value.id, {
       fullName: updatedUser.fullName,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      jobTitle: updatedUser.jobTitle,
       profileImage: updatedUser.profileImage,
       email: updatedUser.email,
       phoneNumber: updatedUser.phoneNumber,
       bio: updatedUser.bio,
       location: updatedUser.location,
       portfolio: updatedUser.portfolio,
-      isAdmin: updatedUser.isAdmin,
+      accountType: updatedUser.accountType,
     });
 
     authStore.user = updated;
@@ -168,8 +174,8 @@ const handlePasswordChange = async (payload: {
       toast.add({
         severity: "success",
         summary: "Password Changed",
-        detail: "Your password has been updated.",
-        life: 3000
+        detail: "Your password has been successfully updated.",
+        life: 3000,
       });
       closePasswordModal();
     } else {
@@ -179,8 +185,8 @@ const handlePasswordChange = async (payload: {
     toast.add({
       severity: "error",
       summary: "Error",
-      detail: error?.message || "Could not change Password.",
-      life: 3000
+      detail: error?.message || "Failed to change password.",
+      life: 3000,
     });
   } finally {
     isPasswordLoading.value = false;

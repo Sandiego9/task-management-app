@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { useAuthStore } from "./store/sample.auth";
+import { useAuthStore } from "./store/auth";
 import App from "./App.vue";
 import router from "./router";
 import PrimeVue from "primevue/config";

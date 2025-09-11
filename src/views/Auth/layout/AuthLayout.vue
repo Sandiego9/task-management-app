@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="auth-layout"
-  >
+  <div class="auth-layout">
     <div class="surface-200 text-gray-900 p-4 border-round-2xl">
       <h2 class="text-2xl font-bold mb-4 text-center">{{ cardTitle }}</h2>
       <slot />
@@ -11,7 +9,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  cardTitle: string
+  cardTitle: string;
 }>();
 </script>
 
@@ -21,7 +19,7 @@ export default {};
 
 <style scoped>
 .auth-layout {
-  background-image: url("../../../assets/images/auth-bg.jpg");
+  background-image: url("@/assets/images/auth-bg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

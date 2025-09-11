@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "../store/sample.auth";
+import { useAuthStore } from "../store/auth";
 
 const routes = [
   {
@@ -17,6 +17,10 @@ const routes = [
   {
     path: "/forgot-password",
     component: () => import("@/views/Auth/ForgotPassword.vue"),
+  },
+  {
+    path: "/reset-password",
+    component: () => import("@/views/Auth/ResetPassword.vue"),
   },
   {
     path: "/dashboard",

@@ -6,6 +6,11 @@ export interface AuthenticatedUser {
   fullName?: string;
   jobTitle: string;
   accountType: string;
+  profileImage?: string;
+  phoneNumber?: string;
+  bio?: string;
+  location?: string;
+  portfolio?: string;
 }
 
 export interface DecodedToken {

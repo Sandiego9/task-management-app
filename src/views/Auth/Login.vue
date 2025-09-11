@@ -56,7 +56,7 @@
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
-import { useAuthStore } from "../../store/sample.auth";
+import { useAuthStore } from "@/store/auth";
 import AuthLayout from "./layout/AuthLayout.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";

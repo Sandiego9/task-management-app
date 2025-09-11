@@ -65,11 +65,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "../store/sample.auth";
+import { useAuthStore } from "../store/auth";
+import { useToast } from "primevue/usetoast";
 import Button from "primevue/button";
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 const authStore = useAuthStore();
 
 const isSidebarVisible = ref(false);
@@ -102,8 +104,14 @@ const isActive = (path: string) => {
   return route.path === path ? "bg-primary text-white" : "";
 };
 
-const handleLogout = () => {
-  authStore.logout();
+const handleLogout = async () => {
+  await authStore.logout();
+  toast.add({
+    severity: "success",
+    summary: "Logged Out",
+    detail: "You have been logged out successfully.",
+    life: 3000,
+  });
   router.push("/login");
 };
 </script>

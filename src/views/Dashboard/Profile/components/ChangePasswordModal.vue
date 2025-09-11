@@ -10,30 +10,63 @@
       <div>
         <div class="flex justify-content-between align-items-center">
           <label for="currentPassword">Current Password</label>
-          <small class="p-error text-red-500 text-xs">{{ errors.currentPassword }}</small>
+          <small class="p-error text-red-500 text-xs">{{
+            errors.currentPassword
+          }}</small>
         </div>
-        <Password v-model="currentPassword" v-bind="cPasswordAttrs" toggleMask class="w-full" />
+        <Password
+          v-model="currentPassword"
+          v-bind="cPasswordAttrs"
+          :feedback="false"
+          toggleMask
+          class="w-full"
+        />
       </div>
 
       <div>
         <div class="flex justify-content-between align-items-center">
           <label for="newPassword">New Password</label>
-          <small class="p-error text-red-500 text-xs">{{ errors.newPassword }}</small>
+          <small class="p-error text-red-500 text-xs">{{
+            errors.newPassword
+          }}</small>
         </div>
-        <Password v-model="newPassword" v-bind="nPasswordAttrs" toggleMask class="w-full" />
+        <Password
+          v-model="newPassword"
+          v-bind="nPasswordAttrs"
+          toggleMask
+          class="w-full"
+        />
       </div>
 
       <div>
         <div class="flex justify-content-between align-items-center">
           <label for="confirmPassword">Confirm Password</label>
-          <small class="p-error text-red-500 text-xs">{{ errors.confirmPassword }}</small>
+          <small class="p-error text-red-500 text-xs">{{
+            errors.confirmPassword
+          }}</small>
         </div>
-        <Password v-model="confirmPassword" v-bind="confirmPasswordAttrs" :feedback="false" toggleMask class="w-full" />
+        <Password
+          v-model="confirmPassword"
+          v-bind="confirmPasswordAttrs"
+          :feedback="false"
+          toggleMask
+          class="w-full"
+        />
       </div>
 
       <div class="flex justify-content-end gap-2 mt-4">
-        <Button label="Cancel" icon="pi pi-times" severity="secondary" @click="emit('close')" />
-        <Button type="submit" label="Update" icon="pi pi-check" :loading="loading" />
+        <Button
+          label="Cancel"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="emit('close')"
+        />
+        <Button
+          type="submit"
+          label="Update"
+          icon="pi pi-check"
+          :loading="loading"
+        />
       </div>
     </form>
   </Dialog>
@@ -55,7 +88,10 @@ const props = defineProps<{
 }>();
 
 const isVisible = ref(props.visible);
-watch(() => props.visible, (val) => (isVisible.value = val));
+watch(
+  () => props.visible,
+  (val) => (isVisible.value = val)
+);
 
 const schema = yup.object({
   currentPassword: yup.string().required("Current password is required"),
@@ -66,20 +102,23 @@ const schema = yup.object({
   confirmPassword: yup
     .string()
     .oneOf([yup.ref("newPassword")], "Passwords must match")
-    .required("Please confirm your password")
+    .required("Please confirm your password"),
 });
 
 const { handleSubmit, errors, defineField, resetForm } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
 });
 
 const [currentPassword, cPasswordAttrs] = defineField("currentPassword");
 const [newPassword, nPasswordAttrs] = defineField("newPassword");
 const [confirmPassword, confirmPasswordAttrs] = defineField("confirmPassword");
 
-watch(() => props.visible, (val) => {
-  if (!val) resetForm();
-});
+watch(
+  () => props.visible,
+  (val) => {
+    if (!val) resetForm();
+  }
+);
 
 const onSubmit = handleSubmit((values) => {
   emit("save", values);
